@@ -1,11 +1,6 @@
 ---
 
-- name: "Get Sonar repo"
-  yum_repository: 
-    name: sonar
-    description: Sonar RedHat repo
-    baseurl: http://downloads.sourceforge.net/project/sonar-pkg/rpm
-    gpgcheck: no
+# TODO: add sonar yum repository in an "Ansible way"
 
 - name: "Download Sonar"
   yum: name=sonar state=present

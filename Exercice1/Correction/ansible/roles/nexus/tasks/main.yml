@@ -20,7 +20,7 @@
   file: src="{{ nexus_path.stdout }}" dest="/opt/nexus" state="link"
 
 - name: "Install service"
-  copy: src="{{ role_path }}/files/nexus.service" dest="/usr/lib/systemd/system/nexus.service" owner="nexus" group="nexus"
+  copy: src="{{ role_path }}/files/nexus.service" dest="/usr/lib/systemd/system/nexus.service"
 
 - name: "Enable service"
   service: name=nexus state=started enabled=yes

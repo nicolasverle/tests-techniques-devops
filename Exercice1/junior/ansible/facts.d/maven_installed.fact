@@ -1,5 +1,0 @@
-#!/bin/bash
-
-which mvn && echo "true" || echo "false"
-
-exit 0;

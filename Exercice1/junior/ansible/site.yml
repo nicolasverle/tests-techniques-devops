@@ -8,8 +8,7 @@
 
 - hosts: ci
   become: true
-  pre_tasks:
-    - include: maven.yml
+  # TODO: Install maven 3 and add it to PATH
   roles:
     - jenkins
 

@@ -1,7 +1,6 @@
 ---
 
-- name: "Create user"
-  user: name="nexus" state="present"
+# TODO: create dedicated user to run Nexus process
 
 - name: "Grab Nexus"
   get_url: url="http://download.sonatype.com/nexus/3/latest-unix.tar.gz" dest="/tmp/nexus.tar.gz"

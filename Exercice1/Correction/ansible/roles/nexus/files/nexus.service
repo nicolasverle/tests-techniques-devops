@@ -1,20 +1,15 @@
 [Unit]
 Description=Nexus Repository Manager unit file
-After=network-online.target
  
 [Service]
 Type=forking
- 
+PermissionsStartOnly=true
 User=nexus
 Group=nexus
-UMask=007
- 
+ExecStartPre=/bin/install -d -o nexus -g nexus /opt/sonatype-work
 ExecStart=/opt/nexus/bin/nexus start
 ExecStop=/opt/nexus/bin/nexus stop
- 
 Restart=on-failure
- 
-# Configures the time to wait before service is stopped forcefully.
 TimeoutStopSec=300
  
 [Install]
