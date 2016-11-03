@@ -1,0 +1,5 @@
+#!/bin/bash
+
+systemctl is-enabled nexus.service &> /dev/null && echo "true" || echo "false"
+
+exit 0;

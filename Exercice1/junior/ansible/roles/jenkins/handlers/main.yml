@@ -1,0 +1,4 @@
+---
+
+- name: "restart jenkins"
+  command: systemctl restart jenkins.service

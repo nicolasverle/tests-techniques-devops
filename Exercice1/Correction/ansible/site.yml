@@ -1,0 +1,24 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - include: assertions.yml 
+    - include: java.yml
+
+- hosts: ci
+  become: true
+  pre_tasks:
+    - include: maven.yml
+  roles:
+    - jenkins
+
+- hosts: repository
+  become: true
+  roles:
+    - nexus
+
+- hosts: quality
+  become: true
+  roles:
+    - sonar

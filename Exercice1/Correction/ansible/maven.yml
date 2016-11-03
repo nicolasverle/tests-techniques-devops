@@ -1,0 +1,12 @@
+---
+
+- name: "Grab Maven 3"
+  get_url: url="http://apache.trisect.eu/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz" dest="/tmp/mvn.tar.gz"
+  when: "ansible_local.maven_installed == false"
+
+- name: "Undeploy Maven 3"
+  unarchive: src="/tmp/mvn.tar.gz" dest="/opt" copy=no
+  when: "ansible_local.maven_installed == false"
+
+- name: "Set mvn in path"
+  alternatives: name=mvn path=/opt/apache-maven-3.3.9/bin/mvn link=/usr/bin/mvn

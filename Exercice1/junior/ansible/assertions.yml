@@ -1,0 +1,7 @@
+--- 
+
+- fail: msg="Ansible Version >= 2.0 required to run those playbooks !"
+  when: "ansible_version.major < 2"
+- fail: msg="Fedora, CentOS or RedHat system is required to run those playbooks !"
+  when: "ansible_os_family != 'RedHat'"
+

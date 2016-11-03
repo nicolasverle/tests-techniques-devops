@@ -1,0 +1,26 @@
+---
+
+- name: "Create user"
+  user: name="nexus" state="present"
+
+- name: "Grab Nexus"
+  get_url: url="http://download.sonatype.com/nexus/3/latest-unix.tar.gz" dest="/tmp/nexus.tar.gz"
+  when: "ansible_local.nexus_installed == false"
+
+- name: "Unarchive Nexus"
+  unarchive: src="/tmp/nexus.tar.gz" dest="/opt" owner=nexus copy=no
+  when: "ansible_local.nexus_installed == false"
+
+- name: "Find Nexus version"
+  shell: "find /opt -maxdepth 1 -type d -name 'nexus-*'"
+  register: nexus_path
+  changed_when: False
+
+- name: "Create nexus symlink"
+  file: src="{{ nexus_path.stdout }}" dest="/opt/nexus" state="link"
+
+- name: "Install service"
+  copy: src="{{ role_path }}/files/nexus.service" dest="/usr/lib/systemd/system/nexus.service" owner="nexus" group="nexus"
+
+- name: "Enable service"
+  service: name=nexus state=started enabled=yes

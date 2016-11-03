@@ -1,0 +1,119 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_VERSION=2
+VAGRANT_BOX="jayunit100/centos7"
+
+CI_HOSTNAME="ci.zenika.com"
+REPOSITORY_HOSTNAME="repository.zenika.com"
+QUALITY_HOSTNAME="quality.zenika.com"
+
+$ansible_install = <<SHELL
+	clean_workspace() {
+		rm -f $(dirname "${0}")*.rpm
+	}
+	trap clean_workspace EXIT
+
+	[ -z "$(rpm -qa | grep ansible)" ] && {
+		wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+		rpm -ivh epel-release-7-8.noarch.rpm
+
+		yum -y install ansible vim-enhanced
+		
+		ln -s /vagrant/ansible/facts.d/ /etc/ansible/facts.d
+	}
+	
+	systemctl -q is-active firewalld.service && {
+		systemctl stop firewalld.service
+		systemctl disable firewalld.service
+	}
+	
+	exit 0;
+	
+SHELL
+
+$copy_private_keys = <<SHELL
+	install -o vagrant -g vagrant -m600 /vagrant/.vagrant/machines/nexus/virtualbox/private_key /home/vagrant/.ssh/nexus.key
+	install -o vagrant -g vagrant -m600 /vagrant/.vagrant/machines/jenkins/virtualbox/private_key /home/vagrant/.ssh/jenkins.key;
+SHELL
+
+Vagrant.configure(VAGRANT_VERSION) do |config|
+
+  config.vm.define "jenkins" do |jenkins|
+    jenkins.vm.box = VAGRANT_BOX
+
+    # Forward jenkins port
+    jenkins.vm.network "forwarded_port", guest: 8080, host: 8080
+
+    jenkins.vm.network "private_network", ip: "192.168.33.50"
+
+    jenkins.vm.provider "virtualbox" do |vb|
+      # Customize the amount of memory on the VM:
+      vb.memory = "1024"
+	  vb.name = "Jenkins"
+    end
+	
+	jenkins.vm.hostname = CI_HOSTNAME
+	jenkins.vm.provision :hosts do |net|
+		net.add_host "192.168.33.52", [ REPOSITORY_HOSTNAME ]
+		net.add_host "192.168.33.54", [ QUALITY_HOSTNAME ]
+	end
+	
+  end
+  
+  config.vm.define "nexus" do |nexus|
+    nexus.vm.box = VAGRANT_BOX
+	
+	# Forward nexus port
+    nexus.vm.network "forwarded_port", guest: 8081, host: 8081
+    
+	nexus.vm.network "private_network", ip: "192.168.33.52"
+	
+	nexus.vm.provider "virtualbox" do |vb|
+      # Customize the amount of memory on the VM:
+      vb.memory = "1024"
+	  vb.name = "Nexus"
+    end
+	
+	nexus.vm.hostname = "repository.zenika.com"
+	nexus.vm.provision :hosts do |net|
+		net.add_host "192.168.33.50", [ CI_HOSTNAME ]
+		net.add_host "192.168.33.54", [ QUALITY_HOSTNAME ]
+	end
+	
+  end
+  
+  config.vm.define "sonar" do |sonar|
+    sonar.vm.box = VAGRANT_BOX
+    
+	sonar.vm.network "forwarded_port", guest: 9000, host: 9000
+
+    sonar.vm.network "private_network", ip: "192.168.33.54"
+
+    sonar.vm.provider "virtualbox" do |vb|
+      # Customize the amount of memory on the VM:
+      vb.memory = "1024"
+	  vb.name = "Sonar"
+    end
+	
+	sonar.vm.hostname = "quality.zenika.com"
+	sonar.vm.provision :hosts do |net|
+		net.add_host "192.168.33.50", [ CI_HOSTNAME ]
+		net.add_host "192.168.33.52", [ REPOSITORY_HOSTNAME ]
+	end
+	
+	config.vm.provision "shell", inline: $copy_private_keys
+	
+	config.vm.provision "ansible_local" do |ansible|
+		ansible.provisioning_path = "/vagrant/ansible"
+		ansible.playbook = "site.yml"
+		ansible.inventory_path = "hosts"
+		ansible.limit = "all"
+		ansible.verbose = true
+	end
+	
+  end
+  
+  config.vm.provision "shell", inline: $ansible_install
+  
+end
