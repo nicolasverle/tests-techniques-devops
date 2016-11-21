@@ -7,10 +7,9 @@ PermissionsStartOnly=true
 User=nexus
 Group=nexus
 ExecStartPre=/bin/install -d -o nexus -g nexus /opt/sonatype-work
-ExecStart=/opt/nexus/bin/nexus start
-ExecStop=/opt/nexus/bin/nexus stop
+ExecStart={{ nexus_path.stdout }}/bin/nexus start
+ExecStop={{ nexus_path.stdout }}/bin/nexus stop
 Restart=on-failure
-TimeoutStopSec=300
  
 [Install]
 WantedBy=multi-user.target

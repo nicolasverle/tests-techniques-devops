@@ -18,8 +18,8 @@ $ansible_install = <<SHELL
 		wget http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
 		rpm -ivh epel-release-7-8.noarch.rpm
 
-		yum -y install ansible vim-enhanced
-		
+		yum -y install ansible vim-enhanced dos2unix
+		find /vagrant/ansible -type f -exec dos2unix {} \\;
 		ln -s /vagrant/ansible/facts.d/ /etc/ansible/facts.d
 	}
 	
@@ -102,9 +102,9 @@ Vagrant.configure(VAGRANT_VERSION) do |config|
 		net.add_host "192.168.33.52", [ REPOSITORY_HOSTNAME ]
 	end
 	
-	config.vm.provision "shell", inline: $copy_private_keys
+	sonar.vm.provision "shell", inline: $copy_private_keys
 	
-	config.vm.provision "ansible_local" do |ansible|
+	sonar.vm.provision "ansible_local" do |ansible|
 		ansible.provisioning_path = "/vagrant/ansible"
 		ansible.playbook = "site.yml"
 		ansible.inventory_path = "hosts"
